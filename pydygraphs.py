@@ -11,7 +11,7 @@ __PYDYGRAPH__DYGRAPHS_LIB_STRING__ = "http://dygraphs.com/dygraph-combined.js"
 
 class __figure__:
     def __init__(self):
-    	global __PYDYGRAPH__FIGURE__NUMBER__
+        global __PYDYGRAPH__FIGURE__NUMBER__
         self._fignum = __PYDYGRAPH__FIGURE__NUMBER__
         self._divname = "Figure" + str(self._fignum)
 
@@ -42,11 +42,11 @@ class __figure__:
         self._showroller = showroller
         self._dateIndex = dateIndex
         if color:
-            if isinstance(color, basestring):
-    	 	    self._color = [color]
+            if isinstance(color, str):
+                self._color = [color]
             else:
                 self._color = color
-    	__PYDYGRAPH__FIGURE__JSON__[self._fignum] = self._jsondata
+        __PYDYGRAPH__FIGURE__JSON__[self._fignum] = self._jsondata
 
 
     def plot(self, x, y=[], ylabels=[], color=None, rangeselector=False, logscale=False, showroller=True):
@@ -56,7 +56,7 @@ class __figure__:
         labelizer = lambda a: (map(lambda x: 'Y' + str(x), a))
 
         if not ylabels:
-            ylabels = labelizer(range(len(y)))
+            ylabels = list(labelizer(range(len(y))))
 
         if len(ylabels) != len(y):
             ylabels.extend(labelizer(range(len(y) - len(ylabels))))
@@ -78,40 +78,40 @@ class __figure__:
         display(HTML(javascript))
 
     def printJS(self):
-        print self.generateJS()
+        print(self.generateJS())
 
     def generateJS(self):
         if self._dateIndex:
             dateWrapper = """            var tempDate = new Date(d[x_col][k]);
-            	        var row = [new Date(tempDate.getTime() + (tempDate.getTimezoneOffset() * 60000))];"""
+                        var row = [new Date(tempDate.getTime() + (tempDate.getTimezoneOffset() * 60000))];"""
         else:
             dateWrapper = """            var row = [d[x_col][k]];"""
 
         dygraphs = ""
 
         dygraphs += """
-	    <script type="text/javascript">
-	    function convertToDataTable_""" + self._divname + """(d) {
-	      var columns = _.keys(d);
-	      var x_col = '""" + self._x_axis +"""';
-	      columns.splice(columns.indexOf(x_col), 1);  // Get index column. (prob index). Don't need to do this just to plot all
-	      var out = [];
-	      var i = 0;
-	      for (var k in d[x_col]) {
+            <script type="text/javascript">
+              function convertToDataTable_""" + self._divname + """(d) {
+              var columns = _.keys(d);
+              var x_col = '""" + self._x_axis +"""';
+              columns.splice(columns.indexOf(x_col), 1);  // Get index column. (prob index). Don't need to do this just to plot all
+              var out = [];
+              var i = 0;
+              for (var k in d[x_col]) {
             """ + dateWrapper + """
-	        columns.forEach(function(col) {
-	          row.push(d[col][k]);
-	        });
-	        out.push(row);
-	      }
-	      return {data:out, labels:[x_col].concat(columns)};
-	    }
+                columns.forEach(function(col) {
+                  row.push(d[col][k]);
+                });
+                out.push(row);
+              }
+              return {data:out, labels:[x_col].concat(columns)};
+            }
 
-	    function handle_output_""" + self._divname + """(out) {
-	      var json = out.content.data['text/plain'];
-	      var data = JSON.parse(eval(json));
+            function handle_output_""" + self._divname + """(out) {
+              var json = out.content.data['text/plain'];
+              var data = JSON.parse(eval(json));
           var tabular = convertToDataTable_""" + self._divname + """(data);
-	      """
+              """
 
         dygraphs += """
             g = new Dygraph(document.getElementById('""" + self._divname + """'), tabular.data, {
@@ -121,7 +121,7 @@ class __figure__:
                 rollPeriod: 1,
                 showRoller: true,
                 animatedZooms: true,
-	        """
+                """
 
         if self._showroller:
             dygraphs+= """
@@ -134,7 +134,7 @@ class __figure__:
 
         if self._color:
             dygraphs+= """
-                colors: ["""+string.join(['"'+c+'"' for c in self._color],',')+"""],
+                colors: [""" + ','.join(['"'+c+'"' for c in self._color]) + """],
             """
 
         if self._title:
@@ -162,14 +162,14 @@ class __figure__:
 
         dygraphs+="""
                labelsDiv: '"""+self._divname+"""_legend',
-	           errorBars: false
-	      })
-	    }
-	    var kernel = IPython.notebook.kernel;
-	    var callbacks_""" + self._divname + """ = { 'iopub' : {'output' : handle_output_""" + self._divname + """}};
-	    kernel.execute("pydygraphs.__PYDYGRAPH__FIGURE__JSON__[""" + str(self._fignum) + """]", callbacks_""" + self._divname + """, {silent:false});
+                   errorBars: false
+              })
+            }
+            var kernel = IPython.notebook.kernel;
+            var callbacks_""" + self._divname + """ = { 'iopub' : {'output' : handle_output_""" + self._divname + """}};
+            kernel.execute("pydygraphs.__PYDYGRAPH__FIGURE__JSON__[""" + str(self._fignum) + """]", callbacks_""" + self._divname + """, {silent:false});
         </script>
-	    """
+            """
         return dygraphs
 
 def __create_table_for_pydygraph_figure__(divname, width, height):
